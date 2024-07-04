@@ -15,3 +15,6 @@ export const toBase64 = (file: File | Blob): Promise<string> => {
     reader.onerror = (error) => reject(error);
   });
 };
+export const copytoClipboard = async (content: string) => {
+  if (navigator.clipboard) navigator.clipboard.writeText(content);
+};
