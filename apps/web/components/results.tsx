@@ -13,7 +13,10 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CodeEditor } from "@/components/code-editor";
 import { RunCommand } from "@/components/run-command";
 
-export function Results() {
+type ResultProps = {
+  code: string;
+};
+export function Results({ code }: ResultProps) {
   return (
     <Tabs defaultValue="sqlschema" className="w-full">
       <TabsList className="grid w-full grid-cols-2">
@@ -21,7 +24,7 @@ export function Results() {
         <TabsTrigger value="migration">Migaration</TabsTrigger>
       </TabsList>
       <TabsContent value="sqlschema">
-        <CodeEditor code="SELECT * FROM users;" />
+        <CodeEditor code={code} />
       </TabsContent>
       <TabsContent value="migration">
         <div className="flex flex-col gap-6">

@@ -1,37 +1,53 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { isSupportedImageType, toBase64 } from "@/utils";
-import Image from "next/image";
 import { Loader2, TableRowsSplit } from "lucide-react";
+import { toast } from "sonner";
+import {useCompletion} from "ai/react";
+import Image from "next/image";
+import { cn } from "@/lib/utils";
 import React, { useEffect, useRef, useState } from "react";
 import { Results } from "@/components/results";
+
+const LIMIT_MB = 4.5 * 1024 * 1024;  
 
 export default function Page(): JSX.Element {
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const [blobURL, setBlogURL] = useState<string | null>(null);
   const [finished, setFinished] = useState(false);
+  const {complete, completion, isLoading} = useCompletion({
+    api: "api/code-generation",
+    onFinish:async () => {
+      setFinished(true);
+    },
+    onError: (err) => {
+      const error = JSON.parse(err.message);
+      toast.error(error);
+      setBlogURL(null);
+    },
+  });
   async function submit(file?: File | Blob) {
     if (!file) return;
 
     if (!isSupportedImageType(file.type)) {
-      // return toast.error(
-      //   "Unsupported format. Only JPEG, PNG, GIF, and WEBP files are supported."
-      // );
+      return toast.error(
+        "Unsupported format. Only JPEG, PNG, GIF, and WEBP files are supported."
+      );
     }
 
     if (file.size > 4.5 * 1024 * 1024) {
-      // return toast.error("Image too large, maximum file size is 4.5MB.");
+      return toast.error("Image too large, maximum file size is 4.5MB.");
     }
 
     const base64 = await toBase64(file);
 
     if (base64.length > 6_464_471) {
-      // return toast.error("Image too large, maximum file size is 4.5MB.");
+      return toast.error("Image too large, maximum file size is 4.5MB.");
     }
     setBlogURL(URL.createObjectURL(file));
     setFinished(false);
+    complete(base64);
   }
   function handleDragLeave() {
     setIsDraggingOver(false);
@@ -76,17 +92,17 @@ export default function Page(): JSX.Element {
       <div
         className={cn("rounded-md border-2 border-dashed text-gray-700 dark:text-gray-300 cursor-pointer transition-colors ease-in-out relative group select-none grow pointer-events-none [@media(hover:hover)]:pointer-events-auto", {
           "border-gray-500 hover:border-black dark:border-gray-600 dark:hover:border-gray-400": !isDraggingOver,
-          "border-blue-300 dark:border-blue-700": isDraggingOver,
+          "border-gray-300-300 dark:gray-blue-700": isDraggingOver,
         })}
         onClick={() => inputRef.current?.click()}
       >
         {blobURL && <Image src={blobURL} unoptimized fill className="lg:object-contain object-cover min-h-16" alt="Uploaded image" />}
         <div
-          className={cn("rounded-md flex-col w-full h-full p-3 items-center justify-center text-center absolute bg-gray-100/70 dark:bg-neutral-950 text-lg font-mono", {
-            "opacity-0 group-hover:opacity-100 transition ease-in-out": false,
+          className={cn("rounded-md flex-col w-full h-full p-3 items-center justify-center text-center absolute bg-gray-100/70 dark:bg-neutral-950 dark:hover:bg-neutral-950/40 text-lg font-mono", {
+            "opacity-0 group-hover:opacity-100 transition ease-in-out": completion,
           })}
         >
-          {false ? (
+          {isLoading ? (
             <Loader2 className="animate-spin size-12" />
           ) : (
             <>
@@ -109,10 +125,10 @@ export default function Page(): JSX.Element {
         </div>
         <input type="file" className="hidden" ref={inputRef} onChange={handleInputChange} accept="image/jpeg, image/png, image/gif, image/webp" />
       </div>
-      ({true || true} && (
+      ({isLoading || completion} && (
       <div className="space-y-3 basis-1/2 rounded-md bg-gray-100/70 dark:bg-neutral-950 w-full drop-shadow-sm">
         {" "}
-        <Results />
+        <Results code={completion} />
       </div>
       ))
     </>

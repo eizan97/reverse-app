@@ -32,7 +32,7 @@ export function RunCommand({ commandCode }: RunCommandProps) {
         }
       }}
     >
-      <div className="flex items-center flex-1 gap-2 font-mono text-xs sm:text-sm">
+      <div className="flex items-center flex-1 gap-2 font-mono tex`t-xs sm:text-sm">
         {isCopied ? <Check className="w-4 h-4" /> : <Terminal className="w-4 h-4" />}
         npx reverse add <CodeCommand commandCode={"now0pp"} />
       </div>
