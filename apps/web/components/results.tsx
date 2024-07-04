@@ -13,7 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CodeEditor } from "@/components/code-editor";
 import { RunCommand } from "@/components/run-command";
 
-export function Result() {
+export function Results() {
   return (
     <Tabs defaultValue="sqlschema" className="w-full">
       <TabsList className="grid w-full grid-cols-2">
