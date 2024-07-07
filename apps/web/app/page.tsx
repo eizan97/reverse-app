@@ -8,6 +8,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import React, { useEffect, useRef, useState } from "react";
 import { Results } from "@/components/results";
+import { useSchemaStore } from "@/store";
 
 const LIMIT_MB = 4.5 * 1024 * 1024;  
 
@@ -16,10 +17,12 @@ export default function Page(): JSX.Element {
   const inputRef = useRef<HTMLInputElement>(null);
   const [blobURL, setBlogURL] = useState<string | null>(null);
   const [finished, setFinished] = useState(false);
+  const setSchema = useSchemaStore((state) => state.setSchema);
   const {complete, completion, isLoading} = useCompletion({
     api: "api/code-generation",
-    onFinish:async () => {
+    onFinish:(_, completion) => {
       setFinished(true);
+      setSchema(completion);
     },
     onError: (err) => {
       const error = JSON.parse(err.message);
