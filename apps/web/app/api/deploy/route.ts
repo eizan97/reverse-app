@@ -5,16 +5,15 @@ import { sql } from "drizzle-orm";
 
 type ResponseJson = {
   url: string;
-  sqlschema: string;
+  sqlSchema: string;
 };
 
 export async function POST(req: Request) {
-  const { url, sqlschema } = (await req.json()) as ResponseJson;
-  console.log(sqlschema);
-  if (url === "") {
+  const { url, sqlSchema } = (await req.json()) as ResponseJson;
+  if (url === "" || !sqlSchema) {
     return NextResponse.json(
       {
-        error: "we couldn't find a conection URL. Please try again with the corret connection URL.",
+        error: "we couldn't find a conection URL or a SQL Schema. Please try again with the corret information.",
       },
       { status: 400 }
     );
@@ -22,6 +21,10 @@ export async function POST(req: Request) {
   const client = postgres(url, { prepare: false });
   const db = drizzle(client);
 
+  console.log({url});
+  console.log(sqlSchema);
+  
+  
   try {
     await db.execute(sql`SELECT NOW()`);
   } catch (error) {
@@ -33,7 +36,7 @@ export async function POST(req: Request) {
     }
     return NextResponse.json({ error: message }, { status: 500 });
   }
-  await db.execute(sql.raw(sqlschema));
+  await db.execute(sql.raw(sqlSchema));
 
   return NextResponse.json({
     message: "Database schema deployed successfully",
