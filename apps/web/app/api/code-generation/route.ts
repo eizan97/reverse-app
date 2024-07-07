@@ -1,6 +1,9 @@
 import OpenAI from "openai";
 import { OpenAIStream, StreamingTextResponse } from "ai";
 import { NextResponse } from "next/server";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+import { url } from "inspector";
 
 const openai = new OpenAI();
 
@@ -27,7 +30,37 @@ Add always the schema name "public" before the table's name.
 Ensure the generated SQL code accurately represents the visual schema for Supabase, including table relationships where present. 
 Return only the SQL code without any additional characters like backticks or formatting indicators.`;
 
+const ratelimit =
+  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+    ? new Ratelimit({
+        redis: new Redis({
+          url: process.env.UPSTASH_REDIS_REST_URL,
+          token: process.env.UPSTASH_REDIS_REST_TOKEN,
+        }),
+        limiter: Ratelimit.slidingWindow(2, "1440m"), //2 days
+        analytics: true,
+      })
+    : false;
+
 export async function POST(req: Request) {
+  if (ratelimit) {
+    const ip = req.headers.get("x-real-ip") ?? "local";
+
+    const { success, limit, reset, remaining } = await ratelimit.limit(ip);
+    if (!success) {
+      return NextResponse.json(
+        { message: "You have reached your request limit for the day." },
+        {
+          status: 429,
+          headers: {
+            "x-RateLimit-limit": limit.toString(),
+            "x-ratelimit-remaining": remaining.toString(),
+            "x-ratelimit-reset": reset.toString(),
+          },
+        }
+      );
+    }
+  }
   const { prompt: base64 } = await req.json();
 
   if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY == "") {
