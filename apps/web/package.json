@@ -25,6 +25,7 @@
     "drizzle-orm": "^0.31.2",
     "lucide-react": "^0.400.0",
     "monaco-editor": "^0.50.0",
+    "nanoid": "^5.0.7",
     "next": "15.0.0-rc.0",
     "next-themes": "^0.3.0",
     "openai": "^4.52.3",

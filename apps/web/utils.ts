@@ -1,3 +1,4 @@
+import {customAlphabet} from "nanoid";
 type SupportedImageTypes = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
 
 export const isSupportedImageType = (type: string): type is SupportedImageTypes => {
@@ -18,3 +19,5 @@ export const toBase64 = (file: File | Blob): Promise<string> => {
 export const copyToClipboard = async (content: string) => {
   if (navigator.clipboard) navigator.clipboard.writeText(content);
 };
+
+export const nanoid = customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 7);
